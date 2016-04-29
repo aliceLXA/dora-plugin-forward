@@ -54,6 +54,11 @@ function Forwarder(url, log) {
       }
   }
   
+  /*********Magic Don`t Touch**********
+   * this.respond = false;
+   * ************************************/
+  this.respond = false;
+  
   log = log || console;
   log.info('>> ' + options.method + ' :: ' + options.url);
   

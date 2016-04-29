@@ -9,7 +9,7 @@ Installation
 Install with `npm`:
 
 ``` bash
-$ npm install --save dora-plugin-forward
+$ npm install --save-dev dora-plugin-forward
 ```
 
 

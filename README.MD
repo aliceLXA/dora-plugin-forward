@@ -20,7 +20,8 @@ Example
  package.json add ::
 
 "dora-forward": {
-    "/xxxxx/yyyy/zzzz" : "http://aaa.bbb.ccc:[prot]"
+    "/xxxxx/yyyy/zzzz" : "http://aaa.bbb.ccc:[prot]",
+    "/xxxxx/yyyy/qqqq" : "http://aaa.www.ccc:[prot]"
  }
 ```
 

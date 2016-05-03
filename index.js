@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", { value : true });
 var fs = require('fs');
 var request = require('request');
 var path = require('path');
+var coBody = require('co-body');
 
 function Forwarder(url, log) {
   var options = {};
@@ -46,12 +47,13 @@ function Forwarder(url, log) {
       }
       break;
     case 'urlencoded':
-      options.form = this.request.body;
+      options.form = this.iReqBody
       break;
     default:
       if (!~['HEAD', 'GET', 'DELETE'].indexOf(options.method)) {
         options.body = this.request.body;
       }
+      break;
   }
   
   /*********Magic Don`t Touch**********
@@ -75,6 +77,19 @@ function Forwarder(url, log) {
 
 function nKoa(rules, log) {
   return function *(next) {
+    
+    switch (this.is('json', 'text', 'urlencoded')) {
+      case 'json':
+        break;
+      case 'text':
+        break;
+      case 'urlencoded':
+        this.iReqBody = yield yield coBody.form(this);
+        break;
+      default:
+        break;
+    }
+    
     Object.keys(rules).forEach(key=> {
       if (this.request.url.indexOf(key) > -1) {
         return Forwarder.call(this, rules[key] + this.request.url, log);

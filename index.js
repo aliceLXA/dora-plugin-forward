@@ -17,7 +17,7 @@ function Forwarder(url, log) {
   delete this.header.host;
   options.headers = this.header;
   options.qs = this.query;
-  
+
   switch (this.is('json', 'multipart/form-data', 'urlencoded')) {
     case 'json':
       delete options.headers['content-length'];
@@ -31,8 +31,8 @@ function Forwarder(url, log) {
       if (!options.formData) {
         delete options.headers['content-length'];
         options.formData = {};
-        
-        Object.keys(files).forEach(function (filename) {
+
+        Object.keys(files).forEach(function(filename) {
           options.formData[filename] = {
             value : fs.createReadStream(files[filename].path),
             options : {
@@ -41,13 +41,13 @@ function Forwarder(url, log) {
             }
           };
         });
-        Object.keys(fields).forEach(function (item) {
+        Object.keys(fields).forEach(function(item) {
           options.formData[item] = fields[item];
         });
       }
       break;
     case 'urlencoded':
-      options.form = this.iReqBody
+      options.form = this.iReqBody;
       break;
     default:
       if (!~['HEAD', 'GET', 'DELETE'].indexOf(options.method)) {
@@ -55,15 +55,15 @@ function Forwarder(url, log) {
       }
       break;
   }
-  
+
   /*********Magic Don`t Touch**********
    * this.respond = false;
    * ************************************/
   this.respond = false;
-  
+
   log = log || console;
   log.info('>> ' + options.method + ' :: ' + options.url);
-  
+
   request(options).on('error', (err) => {
     if (err.code === 'ENOTFOUND') {
       this.res.statusCode = 404;
@@ -77,19 +77,10 @@ function Forwarder(url, log) {
 
 function nKoa(rules, log) {
   return function *(next) {
-    
-    switch (this.is('json', 'text', 'urlencoded')) {
-      case 'json':
-        break;
-      case 'text':
-        break;
-      case 'urlencoded':
-        this.iReqBody = yield yield coBody.form(this);
-        break;
-      default:
-        break;
+
+    if (this.is('urlencoded') === 'urlencoded') {
+      this.iReqBody = yield coBody.form(this);
     }
-    
     Object.keys(rules).forEach(key=> {
       if (this.request.url.indexOf(key) > -1) {
         return Forwarder.call(this, rules[key] + this.request.url, log);
@@ -103,7 +94,7 @@ module.exports.nKoa = nKoa;
 
 exports.default = {
   name : 'forward2',
-  'middleware' : function () {
+  'middleware' : function() {
     var pKg = require(path.resolve(this.cwd, "package.json"));
     this.log.info(pKg['dora-forward']);
     return nKoa(pKg['dora-forward'], this.log);

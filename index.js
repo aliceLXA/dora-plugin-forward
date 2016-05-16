@@ -21,7 +21,7 @@ function Forwarder(url, log) {
   switch (this.is('json', 'multipart/form-data', 'urlencoded')) {
     case 'json':
       delete options.headers['content-length'];
-      options.body = this.request.body;
+      options.body = this.iReqBody;
       options.json = true;
       break;
     case 'multipart/form-data':
@@ -78,8 +78,13 @@ function Forwarder(url, log) {
 function nKoa(rules, log) {
   return function *(next) {
 
-    if (this.is('urlencoded') === 'urlencoded') {
-      this.iReqBody = yield coBody.form(this);
+    switch (this.is('json', 'urlencoded')) {
+      case 'json':
+        this.iReqBody = yield coBody.json(this);
+        break;
+      case 'urlencoded' :
+        this.iReqBody = yield coBody.form(this);
+        break;
     }
     Object.keys(rules).forEach(key=> {
       if (this.request.url.indexOf(key) > -1) {

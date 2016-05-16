@@ -1,6 +1,6 @@
 {
   "name":"dora-plugin-forward",
-  "version":"1.2.0",
+  "version":"1.2.1",
   "description":"A Plugin 4 Dora Dev Server",
   "main":"index.js",
   "keywords":[
@@ -16,7 +16,7 @@
     "url":"git+https://github.com/nanyuantingfeng/dora-plugin-forward.git"
   },
   "dependencies":{
-    "koa-bodyparser":"^2.1.0",
+    "koa-better-body":"^2.0.1",
     "request":"^2.72.0"
   },
   "author":"nanyuantingfeng",

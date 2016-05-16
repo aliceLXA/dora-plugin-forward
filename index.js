@@ -8,7 +8,7 @@ Object.defineProperty(exports, "__esModule", { value : true });
 var fs = require('fs');
 var request = require('request');
 var path = require('path');
-var bodyParser = require('koa-bodyparser');
+var koaBetterBody = require('koa-better-body');
 
 function nForwarder(url, log) {
   var options = {};
@@ -21,7 +21,7 @@ function nForwarder(url, log) {
   switch (this.is('json', 'multipart/form-data', 'urlencoded')) {
     case 'json':
       delete options.headers['content-length'];
-      options.body = this.request.body;
+      options.body = this.body;
       options.json = true;
       break;
     case 'multipart/form-data':
@@ -46,12 +46,10 @@ function nForwarder(url, log) {
       }
       break;
     case 'urlencoded':
-      options.form = this.request.body;
+      options.form = this.body;
       break;
     default:
-      if (!~['HEAD', 'GET', 'DELETE'].indexOf(options.method)) {
-        options.body = this.request.body;
-      }
+      options.body = this.body;
       break;
   }
 
@@ -61,7 +59,7 @@ function nForwarder(url, log) {
   this.respond = false;
 
   log = log || console;
-  log.info('>> ' + options.method + ' :: ' + options.url);
+  log.info(options.method + '::' + options.url);
 
   request(options).on('error', (err) => {
     if (err.code === 'ENOTFOUND') {
@@ -73,28 +71,24 @@ function nForwarder(url, log) {
   }).pipe(this.res);
 }
 
-function nKoa(rules, log) {
-  return function *(next) {
-    Object.keys(rules).forEach(key=> {
-      if (this.request.url.indexOf(key) > -1) {
-        return nForwarder.call(this, rules[key] + this.request.url, log);
-      }
-    });
-    yield *next
-  }
-}
-
-module.exports.nKoa = nKoa;
-
 exports.default = {
   name : 'forward2',
   'middleware.before' : function() {
-    this.app.use(bodyParser());
+    this.app.use(koaBetterBody());
   },
   'middleware' : function() {
     var pKg = require(path.resolve(this.cwd, "package.json"));
-    this.log.info(pKg['dora-forward']);
-    return nKoa(pKg['dora-forward'], this.log);
+    var rules = pKg['dora-forward'];
+    var log = this.log;
+    this.log.info(rules);
+    return function *(next) {
+      yield *next;
+      Object.keys(rules).forEach(key=> {
+        if (this.request.url.indexOf(key) > -1) {
+          return nForwarder.call(this, rules[key] + this.request.url, log);
+        }
+      });
+    }
   }
 };
 

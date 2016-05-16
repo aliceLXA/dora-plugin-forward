@@ -8,9 +8,9 @@ Object.defineProperty(exports, "__esModule", { value : true });
 var fs = require('fs');
 var request = require('request');
 var path = require('path');
-var coBody = require('co-body');
+var bodyParser = require('koa-bodyparser');
 
-function Forwarder(url, log) {
+function nForwarder(url, log) {
   var options = {};
   options.url = url;
   options.method = this.method;
@@ -21,7 +21,7 @@ function Forwarder(url, log) {
   switch (this.is('json', 'multipart/form-data', 'urlencoded')) {
     case 'json':
       delete options.headers['content-length'];
-      options.body = this.iReqBody;
+      options.body = this.request.body;
       options.json = true;
       break;
     case 'multipart/form-data':
@@ -31,7 +31,6 @@ function Forwarder(url, log) {
       if (!options.formData) {
         delete options.headers['content-length'];
         options.formData = {};
-
         Object.keys(files).forEach(function(filename) {
           options.formData[filename] = {
             value : fs.createReadStream(files[filename].path),
@@ -47,7 +46,7 @@ function Forwarder(url, log) {
       }
       break;
     case 'urlencoded':
-      options.form = this.iReqBody;
+      options.form = this.request.body;
       break;
     default:
       if (!~['HEAD', 'GET', 'DELETE'].indexOf(options.method)) {
@@ -70,25 +69,15 @@ function Forwarder(url, log) {
       this.res.end();
     } else {
       log.error(err);
-      //throw err;
     }
   }).pipe(this.res);
 }
 
 function nKoa(rules, log) {
   return function *(next) {
-
-    switch (this.is('json', 'urlencoded')) {
-      case 'json':
-        this.iReqBody = yield coBody.json(this);
-        break;
-      case 'urlencoded' :
-        this.iReqBody = yield coBody.form(this);
-        break;
-    }
     Object.keys(rules).forEach(key=> {
       if (this.request.url.indexOf(key) > -1) {
-        return Forwarder.call(this, rules[key] + this.request.url, log);
+        return nForwarder.call(this, rules[key] + this.request.url, log);
       }
     });
     yield *next
@@ -99,6 +88,9 @@ module.exports.nKoa = nKoa;
 
 exports.default = {
   name : 'forward2',
+  'middleware.before' : function() {
+    this.app.use(bodyParser());
+  },
   'middleware' : function() {
     var pKg = require(path.resolve(this.cwd, "package.json"));
     this.log.info(pKg['dora-forward']);

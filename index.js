@@ -3,12 +3,10 @@
  * DATE : 4/29/16
  * TIME : 21:10
  ****************************************/
-Object.defineProperty(exports, "__esModule", { value : true });
-
-var fs = require('fs');
+var koaBetterBody = require('koa-better-body');
 var request = require('request');
 var path = require('path');
-var koaBetterBody = require('koa-better-body');
+var fs = require('fs');
 
 function nForwarder(url, log) {
   var options = {};
@@ -31,7 +29,7 @@ function nForwarder(url, log) {
       if (!options.formData) {
         delete options.headers['content-length'];
         options.formData = {};
-        Object.keys(files).forEach(function(filename) {
+        Object.keys(files).forEach(function (filename) {
           options.formData[filename] = {
             value : fs.createReadStream(files[filename].path),
             options : {
@@ -40,7 +38,7 @@ function nForwarder(url, log) {
             }
           };
         });
-        Object.keys(fields).forEach(function(item) {
+        Object.keys(fields).forEach(function (item) {
           options.formData[item] = fields[item];
         });
       }
@@ -71,12 +69,12 @@ function nForwarder(url, log) {
   }).pipe(this.res);
 }
 
-exports.default = {
+module.exports = {
   name : 'forward2',
-  'middleware.before' : function() {
+  'middleware.before' : function () {
     this.app.use(koaBetterBody());
   },
-  'middleware' : function() {
+  'middleware' : function () {
     var pKg = require(path.resolve(this.cwd, "package.json"));
     var rules = pKg['dora-forward'];
     var log = this.log;
@@ -90,6 +88,4 @@ exports.default = {
       });
     }
   }
-};
-
-module.exports = exports['default'];
+}

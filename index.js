@@ -59,14 +59,7 @@ function nForwarder(url, log) {
   log = log || console;
   log.info(options.method + '::' + options.url);
 
-  request(options).on('error', (err) => {
-    if (err.code === 'ENOTFOUND') {
-      this.res.statusCode = 404;
-      this.res.end();
-    } else {
-      log.error(err);
-    }
-  }).pipe(this.res);
+  request(options).pipe(this.res);
 }
 
 module.exports = {

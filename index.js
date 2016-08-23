@@ -8,7 +8,7 @@ var request = require('request');
 var path = require('path');
 var fs = require('fs');
 
-function nForwarder(url, log) {
+function forwardHandler(url, log) {
   var options = {};
   options.url = url;
   options.method = this.method;
@@ -55,28 +55,28 @@ function nForwarder(url, log) {
    * this.respond = false;
    * ************************************/
   this.respond = false;
-
-  log = log || console;
-  log.info(options.method + '::' + options.url);
-
-  request(options).pipe(this.res);
+  request(options)
+      .on("error", e=> { log.error(e)})
+      .pipe(this.res);
 }
 
 module.exports = {
-  name : 'forward2',
+  name : 'forward',
   'middleware.before' : function () {
     this.app.use(koaBetterBody());
   },
   'middleware' : function () {
     var pKg = require(path.resolve(this.cwd, "package.json"));
     var rules = pKg['dora-forward'];
-    var log = this.log;
-    this.log.info(rules);
+    var log = this.log || console;
+    log.info(rules);
     return function *(next) {
       yield *next;
       Object.keys(rules).forEach(key=> {
-        if (this.request.url.indexOf(key) > -1) {
-          return nForwarder.call(this, rules[key] + this.request.url, log);
+        var url = this.request.url;
+        if (!!~url.indexOf(key)) {
+          log.info(this.method + '::' + url);
+          return forwardHandler.call(this, rules[key] + url, log);
         }
       });
     }

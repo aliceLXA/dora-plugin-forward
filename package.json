@@ -16,8 +16,7 @@
     "url": "git+https://github.com/nanyuantingfeng/dora-plugin-forward.git"
   },
   "dependencies": {
-    "koa-better-body": "^2.0.1",
-    "request": "^2.72.0"
+    "http-proxy": "^1.15.1"
   },
   "author": "nanyuantingfeng",
   "license": "MIT",

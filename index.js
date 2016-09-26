@@ -7,9 +7,7 @@ var url = require('url');
 var httpProxy = require('http-proxy');
 var path = require('path');
 var fs = require('fs');
-var proxy = httpProxy.createProxyServer({
-  ws : true
-});
+var proxy = httpProxy.createProxyServer({ ws : true });
 
 proxy.on('error', function (e) {
   console.warn(e);
@@ -24,7 +22,7 @@ function proxyReq(ctx, target) {
 
 module.exports = {
   name : 'forward3',
-  'middleware' : function () {
+  middleware : function () {
     var pKg = require(path.resolve(this.cwd, "package.json"));
     var rules = pKg['dora-forward'];
     this.log.info(rules);

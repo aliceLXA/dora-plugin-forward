@@ -20,26 +20,38 @@ function proxyReq(ctx, options) {
   }
 }
 
+function middleware() {
+  var pKg = require(path.resolve(this.cwd, "package.json"));
+  var config = pKg['dora-forward'];
+  this.log.info(config);
+  var gOptions = {};
+  if (config.options) {
+    gOptions = config.options;
+    config.options = undefined;
+    delete config.options;
+  }
+  var rules = config;
+  if (config.rules) {
+    rules = config.rules;
+  }
+  var ruleKeys = Object.keys(rules);
+  return function *(next) {
+    for (var i = 0; i < ruleKeys.length; i++) {
+      var key = ruleKeys[i]
+      var rule = rules[key];
+      if (typeof rule === "string") {
+        rule = { target : rule };
+      }
+      var urlObj = url.parse(this.request.url);
+      if (urlObj.pathname.startsWith(key)) {
+        return yield proxyReq(this, Object.assign({}, gOptions, rule));
+      }
+    }
+    yield next;
+  };
+}
+
 module.exports = {
   name : 'forward3',
-  middleware : function () {
-    var pKg = require(path.resolve(this.cwd, "package.json"));
-    var conf = pKg['dora-forward'];
-    var rules = conf.rules
-    var options = conf.options;
-    this.log.info(rules);
-    var ruleKeys = Object.keys(rules);
-    return function *(next) {
-      for (var i = 0; i < ruleKeys.length; i++) {
-        var key = ruleKeys[i]
-        // 按照http协议，此处url可以包含scheme://host:port，所以要解析出pathname
-        var urlObj = url.parse(this.request.url)
-        if (urlObj.pathname.startsWith(key)) {
-          var opts = Object.assign({ target : rules[key] }, options);
-          return yield proxyReq(this, opts);
-        }
-      }
-      yield next;
-    };
-  }
+  middleware : middleware,
 }

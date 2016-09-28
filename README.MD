@@ -1,7 +1,5 @@
 dora-plugin-forward
 =========
-### commonly used function encapsulation
- 
 
 Installation
 ------------
@@ -18,11 +16,28 @@ Example
 
 ``` js
  package.json add ::
+ 
+ "dora-forward": {
+     "/xxxxx/yyyy/zzzz" : "http://aaa.bbb.ccc:[prot]",
+     "/xxxxx/yyyy/qqqq" : { 
+        "target" : "http://aaa.www.ccc:[prot]" ,
+         ...
+        },
+     ...
+     "options": {
+         // node-http-proxy options
+     }
+  }
+  
+or
 
 "dora-forward": {
     "rules": {
         "/xxxxx/yyyy/zzzz" : "http://aaa.bbb.ccc:[prot]",
-        "/xxxxx/yyyy/qqqq" : "http://aaa.www.ccc:[prot]",
+        "/xxxxx/yyyy/qqqq" : {
+            "target" : "http://aaa.www.ccc:[prot]",
+            ...
+        },
         ...
     },
     "options": {

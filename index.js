@@ -1,50 +1,64 @@
-/*****************************************
- * AUTHOR : nanyuantingfeng
- * DATE : 4/29/16
- * TIME : 21:10
- ****************************************/
-var url = require('url');
-var httpProxy = require('http-proxy');
-var path = require('path');
-var fs = require('fs');
-var proxy = httpProxy.createProxyServer({ ws : true });
+/***********************************************************
+ * AUTHOR : nanyuantingfeng DATE : 4/29/16 TIME : 21:10
+ **********************************************************/
+const httpProxy = require('http-proxy');
+const path = require('path');
+const url = require('url');
+const proxy = httpProxy.createProxyServer({ ws : true });
 
-proxy.on('error', function (e) {
+proxy.on('error', e => {
   console.warn(e);
 });
 
-function proxyReq(ctx, options) {
-  ctx.respond = false;
-  return function (callback) {
-    proxy.web(ctx.req, ctx.res, options, callback);
-  }
-}
-
 function middleware() {
-  var pKg = require(path.resolve(this.cwd, "package.json"));
-  var config = pKg['dora-forward'];
+  let pKg = require(path.resolve(this.cwd, "package.json"));
+  let config = pKg['dora-forward'] || pKg['forward'] || pKg['proxy'];
+
+  if (!config) {
+    return function *(next) {
+      yield next
+    }
+  }
+
   this.log.info(config);
-  var gOptions = {};
+
+  let gOptions = {};
+
   if (config.options) {
     gOptions = config.options;
     config.options = undefined;
     delete config.options;
   }
-  var rules = config;
+
+  let rules = config;
+
   if (config.rules) {
     rules = config.rules;
   }
-  var ruleKeys = Object.keys(rules);
+
+  let ruleKeys = Object.keys(rules);
+
   return function *(next) {
-    for (var i = 0; i < ruleKeys.length; i++) {
-      var key = ruleKeys[i]
-      var rule = rules[key];
+
+    for (let i = 0; i < ruleKeys.length; i++) {
+      let key = ruleKeys[i]
+      let rule = rules[key];
+
       if (typeof rule === "string") {
         rule = { target : rule };
       }
-      var urlObj = url.parse(this.request.url);
+
+      let urlObj = url.parse(this.req.url);
+
       if (urlObj.pathname.startsWith(key)) {
-        return yield proxyReq(this, Object.assign({}, gOptions, rule));
+        return yield (callback) => {
+          this.respond = false;
+          proxy.web(
+            this.req,
+            this.res,
+            Object.assign({ changeOrigin : true }, gOptions, rule, callback)
+          )
+        }
       }
     }
     yield next;

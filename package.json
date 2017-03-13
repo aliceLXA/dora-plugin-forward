@@ -1,6 +1,6 @@
 {
   "name": "dora-plugin-forward",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A Plugin 4 Dora Dev Server",
   "main": "index.js",
   "keywords": [

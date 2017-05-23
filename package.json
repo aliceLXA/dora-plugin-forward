@@ -1,6 +1,6 @@
 {
   "name": "dora-plugin-forward",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A Plugin 4 Dora Dev Server",
   "main": "index.js",
   "keywords": [
@@ -16,7 +16,7 @@
     "url": "git+https://github.com/nanyuantingfeng/dora-plugin-forward.git"
   },
   "dependencies": {
-    "http-proxy": "^1.15.1"
+    "http-proxy": "^1.16.2"
   },
   "author": "nanyuantingfeng",
   "license": "MIT",
